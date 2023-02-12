@@ -2,9 +2,12 @@ package main
 
 import (
 	"log"
+	"math/rand"
 
 	"golang.org/x/crypto/bcrypt"
 )
+
+var chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 // get hashed string from given password
 func passwordHash(pass string) string {
@@ -24,4 +27,16 @@ func checkPassword(pass string, passwordHash string) bool {
 	}
 
 	return true
+}
+
+func generateToken(lenght int) string {
+
+	token := ""
+
+	for i := 0; i < lenght; i++ {
+		randIndex := rand.Intn(len(chars) - 1)
+		token += string(chars[randIndex])
+	}
+
+	return token
 }
