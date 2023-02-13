@@ -7,7 +7,9 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+const (
+	chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+)
 
 // get hashed string from given password
 func passwordHash(pass string) string {
