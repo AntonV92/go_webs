@@ -1,4 +1,4 @@
-package main
+package db
 
 import (
 	"database/sql"
@@ -10,7 +10,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
-func getDbConnection() sql.DB {
+func GetDbConnection() sql.DB {
 
 	envErr := godotenv.Load()
 

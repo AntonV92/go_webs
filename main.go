@@ -1,6 +1,7 @@
 package main
 
 import (
+	"authorization/user"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -38,15 +39,14 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 	if jsonErr != nil {
 		log.Fatal(jsonErr)
 	}
-
-	user, loginErr := login(loginData.Login, loginData.Password)
+	user, loginErr := user.Login(loginData.Login, loginData.Password)
 
 	if loginErr != nil {
 		fmt.Println(loginErr)
 		return
 	}
 
-	w.Write([]byte(user.token.String))
+	w.Write([]byte(user.Token.String))
 
-	fmt.Println(user.token.String)
+	fmt.Println(user.Token.String)
 }
