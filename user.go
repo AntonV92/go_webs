@@ -33,7 +33,7 @@ func login(login string, pass string) (User, error) {
 
 	tokenCreated := time.Now().Sub(lastUpdated).Minutes()
 
-	var token string
+	var token sql.NullString
 	if user.token.String == "" || int(tokenCreated) > tokenExpiredMinutes {
 		genToken := generateToken(30)
 		updatedDate := time.Now().Format(time.DateTime)
@@ -42,6 +42,8 @@ func login(login string, pass string) (User, error) {
 	} else {
 		db.QueryRow("SELECT token FROM users WHERE id = $1 LIMIT 1;", user.id).Scan(&token)
 	}
+
+	user.token = token
 
 	return user, nil
 }

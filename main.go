@@ -46,5 +46,7 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Write([]byte(user.token.String))
+
 	fmt.Println(user.token.String)
 }
