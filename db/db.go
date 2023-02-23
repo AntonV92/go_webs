@@ -10,7 +10,9 @@ import (
 	_ "github.com/lib/pq"
 )
 
-func GetDbConnection() sql.DB {
+var DbConn sql.DB
+
+func InitDbConnection() {
 
 	envErr := godotenv.Load()
 
@@ -27,8 +29,12 @@ func GetDbConnection() sql.DB {
 
 	db, err := sql.Open("postgres", dataSource)
 	if err != nil {
-		fmt.Printf("DB error: %s", err)
+		log.Fatal(err)
 	}
 
-	return *db
+	if dbConnError := db.Ping(); dbConnError != nil {
+		log.Fatal(dbConnError)
+	}
+
+	DbConn = *db
 }

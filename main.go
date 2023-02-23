@@ -1,10 +1,8 @@
 package main
 
 import (
-	"authorization/user"
-	"encoding/json"
-	"fmt"
-	"io"
+	"authorization/db"
+	"authorization/handlers"
 	"log"
 	"net/http"
 )
@@ -20,33 +18,10 @@ const (
 
 func main() {
 
-	http.HandleFunc("/login", handleLogin)
+	db.InitDbConnection()
+
+	http.HandleFunc("/login", handlers.HandleLogin)
+	http.HandleFunc("/", handlers.HandleMain)
 
 	log.Fatal(http.ListenAndServe(":8000", nil))
-}
-
-func handleLogin(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	var loginData LoginForm
-
-	jsonErr := json.Unmarshal(body, &loginData)
-	if jsonErr != nil {
-		log.Fatal(jsonErr)
-	}
-	user, loginErr := user.Login(loginData.Login, loginData.Password)
-
-	if loginErr != nil {
-		fmt.Println(loginErr)
-		return
-	}
-
-	w.Write([]byte(user.Token.String))
-
-	fmt.Println(user.Token.String)
 }

@@ -17,7 +17,7 @@ type User struct {
 }
 
 func Login(login string, pass string) (User, error) {
-	db := db.GetDbConnection()
+	db := db.DbConn
 
 	user := User{}
 
