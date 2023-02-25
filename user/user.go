@@ -2,6 +2,7 @@ package user
 
 import (
 	"authorization/db"
+	"authorization/helpers"
 	"authorization/passwd"
 	"database/sql"
 	"fmt"
@@ -33,12 +34,7 @@ func Login(login string, pass string) (User, error) {
 		return User{}, fmt.Errorf("Wrong password")
 	}
 
-	lastUpdated := user.Token_update
-	lastUpdated = time.Date(
-		lastUpdated.Year(), lastUpdated.Month(), lastUpdated.Day(),
-		lastUpdated.Hour(), lastUpdated.Minute(), 0, 0, time.Local)
-
-	tokenCreated := time.Now().Sub(lastUpdated).Minutes()
+	tokenCreated := helpers.GetTimeDiffNow(user.Token_update).Minutes()
 
 	var token sql.NullString
 	if user.Token.String == "" || int(tokenCreated) > passwd.TokenExpiredMinutes {
