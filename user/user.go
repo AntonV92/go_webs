@@ -6,6 +6,8 @@ import (
 	"database/sql"
 	"fmt"
 	"time"
+
+	"github.com/gorilla/websocket"
 )
 
 type User struct {
@@ -14,7 +16,10 @@ type User struct {
 	Password     string         `json:"password"`
 	Token        sql.NullString `json:"token"`
 	Token_update time.Time      `json:"token_update"`
+	WsConn       websocket.Conn
 }
+
+var UsersStorage = make(map[int]*User)
 
 func Login(login string, pass string) (User, error) {
 	db := db.DbConn
@@ -47,5 +52,21 @@ func Login(login string, pass string) (User, error) {
 
 	user.Token = token
 
+	UsersStorage[user.Id] = &user
+
 	return user, nil
+}
+
+func CheckToken(userId string, token string) bool {
+	db := db.DbConn
+	user := User{}
+	record := db.QueryRow("SELECT id FROM users WHERE id = $1 AND token = $2 LIMIT 1;", userId, token)
+
+	err := record.Scan(&user.Id)
+	if err != nil {
+		fmt.Println("Scan user error")
+		return false
+	}
+
+	return true
 }

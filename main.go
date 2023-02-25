@@ -3,8 +3,13 @@ package main
 import (
 	"authorization/db"
 	"authorization/handlers"
+	"authorization/user"
+	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
+
+	"github.com/gorilla/websocket"
 )
 
 type LoginForm struct {
@@ -12,16 +17,40 @@ type LoginForm struct {
 	Password string `json:"password"`
 }
 
-const (
-	tokenExpiredMinutes = 60
-)
+var Messages = make(chan string)
 
 func main() {
 
 	db.InitDbConnection()
 
+	go broadcaster()
+
+	http.HandleFunc("/ws", handlers.WsHandler)
 	http.HandleFunc("/login", handlers.HandleLogin)
-	http.HandleFunc("/", handlers.HandleMain)
 
 	log.Fatal(http.ListenAndServe(":8000", nil))
+
+}
+
+func broadcaster() {
+	for {
+		select {
+		case <-handlers.ClientsEvents:
+
+			for userId := range handlers.OnlineClients {
+
+				userConn := user.UsersStorage[userId].WsConn
+				jsonNames, err := json.Marshal(handlers.OnlineClients)
+
+				if err != nil {
+					fmt.Println("json error")
+				}
+
+				wserr := userConn.WriteMessage(websocket.TextMessage, jsonNames)
+				if wserr != nil {
+					fmt.Println(wserr)
+				}
+			}
+		}
+	}
 }

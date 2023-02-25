@@ -35,13 +35,13 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(user.Token.String))
+	rData := WsLoginData{
+		UserId: user.Id,
+		Token:  user.Token.String,
+	}
 
-	fmt.Println(user.Token.String)
-}
+	response, _ := json.Marshal(rData)
 
-func HandleMain(w http.ResponseWriter, r *http.Request) {
-	token := r.Header.Get("token")
+	w.Write([]byte(response))
 
-	fmt.Println(token)
 }
