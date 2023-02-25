@@ -66,3 +66,23 @@ func CheckToken(userId string, token string) bool {
 
 	return true
 }
+
+func UserStorageChecker() {
+	ticker := time.NewTicker(30 * time.Second)
+
+	for {
+		select {
+		case t := <-ticker.C:
+			formattedTime := t.Format(time.DateTime)
+			fmt.Printf("Storage checked at: %s\n", formattedTime)
+			for id, user := range UsersStorage {
+				tokenUpdated := helpers.GetTimeDiffNow(user.Token_update).Minutes()
+				fmt.Printf("Token updated db: %s, token_updated: %d\n", user.Token_update, int(tokenUpdated))
+				if int(tokenUpdated) > passwd.TokenExpiredMinutes {
+					delete(UsersStorage, id)
+					fmt.Printf("User with id: %d was deleted from storage\n", id)
+				}
+			}
+		}
+	}
+}

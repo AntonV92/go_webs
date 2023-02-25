@@ -24,6 +24,7 @@ func main() {
 	db.InitDbConnection()
 
 	go broadcaster()
+	go user.UserStorageChecker()
 
 	http.HandleFunc("/ws", handlers.WsHandler)
 	http.HandleFunc("/login", handlers.HandleLogin)

@@ -10,7 +10,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
-var DbConn sql.DB
+var DbConn *sql.DB
 
 func InitDbConnection() {
 
@@ -36,5 +36,5 @@ func InitDbConnection() {
 		log.Fatal(dbConnError)
 	}
 
-	DbConn = *db
+	DbConn = db
 }
