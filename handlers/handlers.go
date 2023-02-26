@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 )
 
@@ -17,20 +16,25 @@ type LoginForm struct {
 func HandleLogin(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Content-type", "application/json")
+
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println("Read body error")
 	}
 
 	var loginData LoginForm
 
 	jsonErr := json.Unmarshal(body, &loginData)
 	if jsonErr != nil {
-		log.Fatal(jsonErr)
+		w.Write([]byte("json login data error"))
+		fmt.Println(jsonErr)
 	}
 	user, loginErr := user.Login(loginData.Login, loginData.Password)
 
 	if loginErr != nil {
+		w.Write([]byte("Login user error"))
 		fmt.Println(loginErr)
 		return
 	}
@@ -40,7 +44,11 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 		Token:  user.Token.String,
 	}
 
-	response, _ := json.Marshal(rData)
+	response, responseJsonError := json.Marshal(rData)
+
+	if responseJsonError != nil {
+		fmt.Printf("response json error %v", responseJsonError)
+	}
 
 	w.Write([]byte(response))
 
