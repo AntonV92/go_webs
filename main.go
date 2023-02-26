@@ -38,10 +38,10 @@ func broadcaster() {
 		select {
 		case <-handlers.ClientsEvents:
 
-			for userId := range handlers.OnlineClients {
+			for userId := range handlers.ClientsOnline.ClientsList {
 
 				userConn := user.UsersStorage[userId].WsConn
-				jsonNames, err := json.Marshal(handlers.OnlineClients)
+				jsonNames, err := json.Marshal(handlers.ClientsOnline)
 
 				if err != nil {
 					fmt.Println("json error")

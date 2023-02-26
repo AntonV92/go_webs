@@ -15,7 +15,13 @@ type WsLoginData struct {
 	Token  string `json:"token"`
 }
 
-var OnlineClients = make(map[int]string)
+type OnlineClients struct {
+	ClientsList map[int]string `json:"online_clients"`
+}
+
+var ClientsOnline = OnlineClients{
+	ClientsList: make(map[int]string),
+}
 var ClientsEvents = make(chan bool)
 
 var upgrader = websocket.Upgrader{
@@ -39,7 +45,7 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 	userId, strConvErr := strconv.Atoi(r.URL.Query().Get("user_id"))
 
 	defer func() {
-		delete(OnlineClients, userId)
+		delete(ClientsOnline.ClientsList, userId)
 		ClientsEvents <- true
 	}()
 
@@ -54,12 +60,9 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	OnlineClients[userId] = user.Name
+	ClientsOnline.ClientsList[user.Id] = user.Name
 	user.WsConn = *conn
 	ClientsEvents <- true
-
-	helloMessage := "Hi client: " + user.Name
-	conn.WriteMessage(websocket.TextMessage, []byte(helloMessage))
 
 	fmt.Printf("Connected: %s\n", user.Name)
 

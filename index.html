@@ -23,6 +23,11 @@
     </form>
     <hr>
     <div v-if="showMessagesBlock">
+      <div>
+        <li v-for="(client, id) in clients">
+          {{ client }}
+        </li>
+      </div>
       <div style="height: 500px; overflow: auto;display: flex;
       flex-direction: column-reverse;">
         <p v-for="mes in messages">{{ mes }}</p>
@@ -40,6 +45,16 @@
     const url = "http://localhost:8000"
     const wsUrl = "ws://localhost:8000/ws"
 
+    function isJson(data) {
+      try {
+        JSON.parse(data)
+      } catch (e) {
+        return false
+      }
+      return true
+    }
+
+
     let ws_conn
 
     createApp({
@@ -52,7 +67,8 @@
           message: "",
           showLogForm: true,
           showMessagesBlock: false,
-          messages: []
+          messages: [],
+          clients: {}
         }
       },
       methods: {
@@ -61,8 +77,7 @@
             login: this.login,
             password: this.password
           }
-          let messages = this.messages
-
+          let vueContext = this
           let loginData = JSON.stringify(loginForm)
 
           fetch(url + "/login", {
@@ -94,7 +109,16 @@
               ws.onmessage = function (e) {
                 let message = e.data
                 console.log(message)
-                messages.unshift(message)
+
+                if (isJson(message)) {
+                  let obj = JSON.parse(message)
+
+                  if (obj.online_clients != undefined) {
+                    vueContext.clients = obj.online_clients
+                  }
+                }
+
+                vueContext.messages.unshift(message)
               }
               ws.onerror = function (e) {
                 console.log("ws error: " + e.data)
