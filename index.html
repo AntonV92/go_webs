@@ -26,15 +26,15 @@
     const { createApp } = Vue
 
     const url = "http://localhost:8000"
-
-
+    const wsUrl = "ws://localhost:8000/ws"
 
     createApp({
       data() {
         return {
           login: "",
           password: "",
-          token: ""
+          token: "",
+          user_id: ""
         }
       },
       methods: {
@@ -56,10 +56,33 @@
             return response.json()
           }).then((data) => {
             console.log(data)
+
+            if (data.user_id != undefined && data.token != undefined) {
+              this.user_id = data.user_id
+              this.token = data.token
+              let ws = new WebSocket(wsUrl + `?user_id=${this.user_id}&token=${this.token}`)
+              ws.onopen = function (e) {
+                console.log(e)
+              }
+              ws.onclose = function (e) {
+                console.log("ws connection closed")
+                ws = null;
+              }
+              ws.onmessage = function (e) {
+                let message = e.data
+                console.log(message)
+              }
+              ws.onerror = function (e) {
+                console.log("ws error: " + e.data)
+              }
+            }
+
           }).catch((err) => {
             console.log(err)
           });
-        }
+        },
+
+
       }
     }).mount('#app')
 
