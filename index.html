@@ -22,20 +22,30 @@
       <button type="submit" class="btn btn-primary" id="loginSubmit" @click.prevent="loginRequest">Submit</button>
     </form>
     <hr>
-    <div v-if="showMessagesBlock">
-      <div>
-        <li v-for="(client, id) in clients">
-          {{ client }}
-        </li>
+    <div v-if="showMessagesBlock" class="container">
+
+      <div class="row">
+        <div class="col-3">
+          <ul class="list-group">
+            <li v-for="(client, id) in clients" @click="setClient(id)"
+              class="list-group-item d-flex justify-content-between align-items-center">
+              {{ client }}
+              <span class="badge bg-primary rounded-pill"></span>
+            </li>
+          </ul>
+        </div>
+        <div class="col">
+          <div style="height: 500px; overflow: auto;display: flex;
+      flex-direction: column-reverse;  border: 1px inset black;">
+            <p v-for="mes in messages">{{ mes }}</p>
+          </div>
+          <input type="text" @keyup.enter="sendMessage" class="form-control" v-model="message">
+          <br>
+          <button type="submit" class="btn btn-outline-secondary" id="loginSubmit" @click.prevent="sendMessage">Send
+            message</button>
+        </div>
       </div>
-      <div style="height: 500px; overflow: auto;display: flex;
-      flex-direction: column-reverse;">
-        <p v-for="mes in messages">{{ mes }}</p>
-      </div>
-      <input type="text" @keyup.enter="sendMessage" class="form-control" v-model="message">
-      <br>
-      <button type="submit" class="btn btn-outline-secondary" id="loginSubmit" @click.prevent="sendMessage">Send
-        message</button>
+
     </div>
 
   </div>
@@ -68,7 +78,8 @@
           showLogForm: true,
           showMessagesBlock: false,
           messages: [],
-          clients: {}
+          clients: {},
+          selected_client: 0
         }
       },
       methods: {
@@ -115,6 +126,7 @@
 
                   if (obj.online_clients != undefined) {
                     vueContext.clients = obj.online_clients
+                    return
                   }
                 }
 
@@ -135,8 +147,17 @@
             return
           }
 
-          ws_conn.send(this.message)
+          let clientMessage = {
+            to_user_id: parseInt(this.selected_client),
+            from_user_id: parseInt(this.user_id),
+            message_text: this.message
+          }
+
+          ws_conn.send(JSON.stringify(clientMessage))
           this.message = ""
+        },
+        setClient(id) {
+          this.selected_client = id
         }
       }
     }).mount('#app')

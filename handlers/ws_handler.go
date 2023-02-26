@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"authorization/user"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -17,6 +18,12 @@ type WsLoginData struct {
 
 type OnlineClients struct {
 	ClientsList map[int]string `json:"online_clients"`
+}
+
+type ClientMessage struct {
+	ToUserId    int    `json:"to_user_id"`
+	FromUserId  int    `json:"from_user_id"`
+	MessageText string `json:"message_text"`
 }
 
 var ClientsOnline = OnlineClients{
@@ -54,24 +61,44 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, isLoggedUser := user.UsersStorage[userId]
+	loggedUser, isLoggedUser := user.UsersStorage[userId]
 	if !isLoggedUser {
 		conn.WriteMessage(websocket.TextMessage, []byte("Login session is expired"))
 		return
 	}
 
-	ClientsOnline.ClientsList[user.Id] = user.Name
-	user.WsConn = *conn
+	ClientsOnline.ClientsList[loggedUser.Id] = loggedUser.Name
+	loggedUser.WsConn = *conn
 	ClientsEvents <- true
 
-	fmt.Printf("Connected: %s\n", user.Name)
+	fmt.Printf("Connected: %s\n", loggedUser.Name)
 
 	for {
 		_, message, err := conn.ReadMessage()
 		if err != nil {
-			log.Println("read:", err)
+			log.Println("read ws message error: ", err)
 			break
 		}
-		log.Printf("recv: %s", message)
+
+		sendMessageErr := sendClientMessage(message)
+		if sendMessageErr != nil {
+			fmt.Printf("send client message error: %v\n", sendMessageErr)
+			continue
+		}
 	}
+}
+
+func sendClientMessage(message []byte) error {
+
+	mes := ClientMessage{}
+	decodeError := json.Unmarshal(message, &mes)
+	if decodeError != nil {
+		return decodeError
+	}
+	sendError := user.UsersStorage[mes.ToUserId].WsConn.WriteMessage(websocket.TextMessage, []byte(message))
+	if sendError != nil {
+		return sendError
+	}
+
+	return nil
 }
