@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/websocket"
 )
@@ -26,6 +27,12 @@ func main() {
 	go broadcaster()
 	go user.UserStorageChecker()
 
+	curr, _ := os.Getwd()
+
+	fs := http.FileServer(http.Dir(curr + "/frontend"))
+
+	http.Handle("/frontend/", http.StripPrefix("/frontend", fs))
+	http.HandleFunc("/", handlers.HandleMain)
 	http.HandleFunc("/ws", handlers.WsHandler)
 	http.HandleFunc("/login", handlers.HandleLogin)
 
@@ -44,7 +51,7 @@ func broadcaster() {
 				jsonNames, err := json.Marshal(handlers.ClientsOnline)
 
 				if err != nil {
-					fmt.Println("json error")
+					fmt.Printf("Json clients event error: %v\n", err)
 				}
 
 				wserr := userConn.WriteMessage(websocket.TextMessage, jsonNames)

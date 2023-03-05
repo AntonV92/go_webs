@@ -5,12 +5,29 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
+	"log"
 	"net/http"
 )
 
 type LoginForm struct {
 	Login    string `json:"login"`
 	Password string `json:"password"`
+}
+
+func HandleMain(w http.ResponseWriter, r *http.Request) {
+
+	if r.RequestURI != "/" {
+		w.WriteHeader(404)
+		return
+	}
+
+	indexHtml, readFileErr := ioutil.ReadFile("frontend/index.html")
+	if readFileErr != nil {
+		log.Fatal(readFileErr)
+	}
+
+	w.Write(indexHtml)
 }
 
 func HandleLogin(w http.ResponseWriter, r *http.Request) {
